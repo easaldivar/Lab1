@@ -1,31 +1,46 @@
 const net = require('net');
 const fs = require('fs');
-const port = 8080;
-const host = 'localhost'; // replace with the server's IP if it's not local
 
-const client = new net.Socket();
-const fileStream = fs.createReadStream('robsito.jpeg');
+function sendFile(filePath) {
+    // Se obtiene el nombre del archivo
+    const fileName = filePath.substring(filePath.lastIndexOf('/') + 1);
 
-client.connect(port, host, () => {
-    console.log('Connected to server');
-    fileStream.on('readable', () => {
-        let chunk;
-        while (null !== (chunk = fileStream.read())) {
-            console.log('Sending data...');
-            client.write(chunk);
-        }
+    // Conexion al servidor
+    const client = net.createConnection({ port: 8080 }, () => {
+        console.log('[CL] Conectado al servidor');
+
+        // Se envia el nombre de archivo
+        client.write(fileName);
+
+        // Se lee el archivo y se envia al servidor
+        const fileStream = fs.createReadStream(filePath);
+        fileStream.on('data', (data) => {
+            client.write(data);
+        });
+        
+        // Enviado el archivo se cierra la conexion
+        fileStream.on('end', () => {
+            client.end();
+            console.log('[CL] Archivo enviado');
+        });
+
+        // En caso de error se cierra la conexion
+        fileStream.on('error', (error) => {
+            console.error('[CL] Error en la transferencia:', error);
+            client.end();
+        });
+
     });
-
-    fileStream.on('end', () => {
-        console.log('Data transfer completed');
+    // Cierre de conexion
+    client.on('end', () => {
+        console.log('[CL] Cierre de conexion');
         client.end();
     });
-});
 
-client.on('close', () => {
-    console.log('Connection closed');
-});
+    client.on('error', (error) => {
+        console.error('Error en la transferencia:', error);
+        client.end();
+    });
+}
 
-client.on('error', (err) => {
-    console.error('An error occurred:', err);
-});
+module.exports.sendFile = sendFile;
