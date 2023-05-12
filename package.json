@@ -1,0 +1,16 @@
+{
+  "name": "redes",
+  "version": "1.0.0",
+  "description": "",
+  "main": "owo.js",
+  "scripts": {
+    "server": "node server.js",
+    "client": "node client.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "fs": "^0.0.1-security",
+    "net": "^1.0.2"
+  }
+}
