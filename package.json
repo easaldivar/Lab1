@@ -12,7 +12,10 @@
   "license": "ISC",
   "dependencies": {
     "fs": "^0.0.1-security",
+    "inquirer": "^9.2.3",
     "net": "^1.0.2",
-    "path": "^0.12.7"
+    "path": "^0.12.7",
+    "select-files-cli": "0.0.4",
+    "tqdm": "^2.0.3"
   }
 }

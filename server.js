@@ -1,57 +1,83 @@
-const net = require('net');
-const fs = require('fs');
+const net = require("net");
+const fs = require("fs");
 const port = 8080;
-const path = require('path');
+const path = require("path");
 
 const server = net.createServer((socket) => {
-  console.log('[SV] Cliente conectado');
+    console.log("[SV] Cliente conectado");
 
-  let fileName = '';
-  let fileSize = 0;
-  let receivedSize = 0;
-  let writeStream;
+    let receivedSize = 0;
+    let writeStream;
 
+    let fileName = "";
+    let fileSize = 0;
 
-  socket.on('data', (data) => {
-    if (!fileName) {
-      // Nombre del archivo
-      fileName = data.toString();
-      console.log('[SV] Nombre archivo recibido:', fileName);
-      // Crear un flujo de escritura de archivos
-      const filePath = path.join(__dirname, "recieved_ " + fileName);
-      writeStream = fs.createWriteStream(filePath);
-      writeStream.on('error', (err) => {
-        console.error(`[SV] Error al escribir en el archivo ${filePath}: ${err}`);
-      });
-      writeStream.on('finish', () => {
-        console.log(`[SV] Archivo ${filePath} guardado.`);
-      });
-    } else if (fileSize === 0) {
-      // Tamaño del archivo
-      fileSize = parseInt(data.toString());
-      console.log('[SV] Tamaño archivo recibido:', fileSize);
-    } else {
-      // Se reciben los datos del archivo
-      receivedSize += data.length;
-      writeStream.write(data);
-      if (receivedSize === fileSize) {
-        writeStream.end();
-        console.log(`[SV] Archivo ${fileName} recibido completamente.`);
-      }
+    function saveFile(fileName, fileSize) {
+        return new Promise((resolve, reject) => {
+            const filePath = path.join(__dirname, "received_" + fileName);
+            const writeStream = fs.createWriteStream(filePath);
+
+            writeStream.on('error', (err) => {
+                reject(`[SV] Error al escribir en el archivo ${filePath}: ${err}`);
+            });
+
+            writeStream.on('finish', () => {
+                resolve(filePath);
+            });
+
+            socket.on('data', (data) => {
+                writeStream.write(data);
+                receivedSize += data.length;
+
+                // Barra de progreso custom
+                let percent = Math.trunc((receivedSize / fileSize) * 100);
+                const emptyLength = 25 - Math.trunc(percent / 4);
+                const progressBar = "█".repeat(Math.trunc(percent / 4)) + "░".repeat(emptyLength);
+
+                process.stdout.clearLine();
+                process.stdout.cursorTo(0);
+                process.stdout.write('[' + progressBar + '] ' + percent + "%");
+
+                if (receivedSize === fileSize) {
+                    writeStream.end();
+                    console.log(`\n[SV] Archivo ${fileName} recibido completamente.`);
+                }
+            });
+        });
     }
-  });
 
-  socket.on('end', () => {
-    console.log('[SV] Cierre de conexion');
-    socket.end();
-  });
+    socket.on('data', (data) => {
+        if (!fileName) {
+            // Nombre del archivo
+            fileName = data.toString();
+            console.log('[SV] Nombre archivo recibido:', fileName);
+        } else if (!fileSize) {
+            // Tamaño del archivo
+            fileSize = parseInt(data.toString());
+            console.log('[SV] Tamaño archivo recibido:', fileSize);
 
-  socket.on('error', (error) => {
-    console.error('[SV] Error de socket:', error);
-  });
+            saveFile(fileName, fileSize)
+                .then((filePath) => {
+                    console.log(`[SV] Archivo ${filePath} guardado.`);
+                })
+                .catch((error) => {
+                    console.error(error);
+                });
+        }
+    });
+
+
+    socket.on("end", () => {
+        console.log("[SV] Cierre de conexion");
+        socket.end();
+    });
+
+    socket.on("error", (error) => {
+        console.error("[SV] Error de socket:", error);
+    });
 });
 
 // Start sv
 server.listen(port, () => {
-  console.log('[SV] Servidor abierto en el 8080');
+    console.log("[SV] Servidor abierto en el 8080");
 });
