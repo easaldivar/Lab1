@@ -5,12 +5,18 @@ function sendFile(filePath) {
     // Se obtiene el nombre del archivo
     const fileName = filePath.substring(filePath.lastIndexOf('/') + 1);
 
+    //definirle a filesize el tamaño del archivo
+    const fileSize = fs.statSync(filePath).size;
+
     // Conexion al servidor
     const client = net.createConnection({ port: 8080 }, () => {
         console.log('[CL] Conectado al servidor');
 
         // Se envia el nombre de archivo
         client.write(fileName);
+
+        // Se envia el tamaño del archivo
+        client.write(fileSize.toString());
 
         // Se lee el archivo y se envia al servidor
         const fileStream = fs.createReadStream(filePath);
