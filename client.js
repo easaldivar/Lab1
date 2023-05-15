@@ -3,7 +3,8 @@ const fs = require('fs');
 
 function sendFile(filePath) {
     // Se obtiene el nombre del archivo
-    const fileName = filePath.substring(filePath.lastIndexOf('/') + 1);
+    let fileName = filePath.substring(filePath.lastIndexOf('/') + 1);
+    fileName = filePath.substring(filePath.lastIndexOf('\\') + 1);
 
     //definirle a filesize el tamaño del archivo
     const fileSize = fs.statSync(filePath).size;
