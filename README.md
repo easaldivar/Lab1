@@ -6,6 +6,11 @@
 - Barra de progreso en cliente y servidor
 
 ## Uso del programa
+### Instalacion de dependencias necesarias
+Basta con escribir:
+```
+npm install
+```
 
 ### Ejecucion del servidor
  Primero se ejecuta el servidor (quien va a recibir el archivo), para hacer esto basta con escribir en la terminal
