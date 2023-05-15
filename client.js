@@ -45,10 +45,20 @@ async function sendFile(filePath) {
          await delay(1000);
 
          // Se lee el archivo y se envia al servidor
-         const fileStream = fs.createReadStream(tempFilePath);
-         fileStream.on('data', (data) => {
-             client.write(data);
-         });
+        let sentSize = 0;
+        const fileStream = fs.createReadStream(filePath);
+        fileStream.on('data', (data) => {
+            client.write(data);
+            sentSize += data.length;
+            // Barra de progreso custom
+            let percent = Math.trunc((sentSize / fileSize) * 100);
+            const emptyLength = 25 - Math.trunc(percent / 4);
+            const progressBar = "█".repeat(Math.trunc(percent / 4)) + "░".repeat(emptyLength);
+
+            process.stdout.clearLine();
+            process.stdout.cursorTo(0);
+            process.stdout.write('[' + progressBar + '] ' + percent + "%");
+        });
         
         // Enviado el archivo se cierra la conexion
         fileStream.on('end', () => {
