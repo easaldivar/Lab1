@@ -3,17 +3,17 @@ const fs = require('fs');
 const crypto = require('crypto');
 
 const algorithm = 'aes-256-cbc';
-const password = 'YourSecurePassword'; // Should be 32 bytes
-const key = crypto.scryptSync(password, 'salt', 32); // Salt should be unique for each user
+const password = 'YourSecurePassword'; // Deberian ser 32 bytes
+const key = crypto.scryptSync(password, 'salt', 32); // Salt debe ser unica para cada usuario
 
 function encrypt(data){
-    const iv = crypto.randomBytes(16); // Generate a secure random IV
+    const iv = crypto.randomBytes(16); // Generar un IV aleatorio seguro
     const cipher = crypto.createCipheriv(algorithm, key, iv);
 
     let encrypted = cipher.update(data);
     encrypted = Buffer.concat([encrypted, cipher.final()]);
 
-    return Buffer.concat([iv, encrypted]); // Prepend IV to the encrypted file
+    return Buffer.concat([iv, encrypted]); // Anteponer IV al archivo encriptado
 }
 
 async function sendFile(filePath) {
@@ -24,7 +24,7 @@ async function sendFile(filePath) {
      // Encrypt the file and write to a temporary file
      const fileData = fs.readFileSync(filePath);
      const encryptedData = encrypt(fileData);
-     const tempFilePath = filePath + '.enc'; // Add .enc extension for the encrypted file
+     const tempFilePath = filePath + '.enc'; // Agrega la extensión .enc para el archivo encriptado
      fs.writeFileSync(tempFilePath, encryptedData);
  
      //definirle a filesize el tamaño del archivo
@@ -65,7 +65,7 @@ async function sendFile(filePath) {
             client.end();
             console.log('[CL] Archivo enviado');
 
-            // Delete the temporary encrypted file
+            // Eliminar el archivo cifrado temporal
             fs.unlink(tempFilePath, (err) => {
                 if (err) {
                     console.error('There was an error deleting the file:', err);

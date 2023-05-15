@@ -4,12 +4,12 @@ const port = 8080;
 const path = require("path");
 const crypto = require('crypto');
 const algorithm = 'aes-256-cbc';
-const password = 'YourSecurePassword'; // Should be 32 bytes
-const key = crypto.scryptSync(password, 'salt', 32); // Salt should be unique for each user
+const password = 'YourSecurePassword'; // Deberian ser 32 bytes
+const key = crypto.scryptSync(password, 'salt', 32); // Salt debe ser unica para cada usuario
 
 function decrypt(data){
-  const iv = data.slice(0, 16); // Assuming IV is prepended to the encrypted file
-  const content = data.slice(16); // The rest should be the content
+  const iv = data.slice(0, 16); // Suponiendo que IV se antepone al archivo cifrado
+  const content = data.slice(16); // El resto debe ser el contenido.
 
   const decipher = crypto.createDecipheriv(algorithm, key, iv);
 
@@ -58,7 +58,7 @@ const server = net.createServer((socket) => {
                   writeStream.end();
                   console.log(`\n[SV] Archivo ${fileName} recibido completamente.`);
           
-                  // Read the file, decrypt it and then write it back
+                  // Leer el archivo, descifrarlo y luego volver a escribirlo
                   const fileData = fs.readFileSync(filePath);
                   const decryptedData = decrypt(fileData);
                   fs.writeFileSync(filePath, decryptedData);
@@ -100,7 +100,7 @@ const server = net.createServer((socket) => {
     });
 });
 
-// Start sv
+// Inicia sv
 server.listen(port, () => {
     console.log("[SV] Servidor abierto en el 8080");
 });
