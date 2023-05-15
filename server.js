@@ -2,6 +2,22 @@ const net = require("net");
 const fs = require("fs");
 const port = 8080;
 const path = require("path");
+const crypto = require('crypto');
+const algorithm = 'aes-256-cbc';
+const password = 'YourSecurePassword'; // Should be 32 bytes
+const key = crypto.scryptSync(password, 'salt', 32); // Salt should be unique for each user
+
+function decrypt(data){
+  const iv = data.slice(0, 16); // Assuming IV is prepended to the encrypted file
+  const content = data.slice(16); // The rest should be the content
+
+  const decipher = crypto.createDecipheriv(algorithm, key, iv);
+
+  let decrypted = decipher.update(content);
+  decrypted = Buffer.concat([decrypted, decipher.final()]);
+
+  return decrypted;
+}
 
 const server = net.createServer((socket) => {
     console.log("[SV] Cliente conectado");
@@ -39,8 +55,15 @@ const server = net.createServer((socket) => {
                 process.stdout.write('[' + progressBar + '] ' + percent + "%");
 
                 if (receivedSize === fileSize) {
-                    writeStream.end();
-                    console.log(`\n[SV] Archivo ${fileName} recibido completamente.`);
+                  writeStream.end();
+                  console.log(`\n[SV] Archivo ${fileName} recibido completamente.`);
+          
+                  // Read the file, decrypt it and then write it back
+                  const fileData = fs.readFileSync(filePath);
+                  const decryptedData = decrypt(fileData);
+                  fs.writeFileSync(filePath, decryptedData);
+          
+                  console.log(`[SV] Archivo ${filePath} desencriptado.`);
                 }
             });
         });
@@ -63,7 +86,7 @@ const server = net.createServer((socket) => {
                 .catch((error) => {
                     console.error(error);
                 });
-        }
+        } 
     });
 
 
